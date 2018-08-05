@@ -1,0 +1,4 @@
+[submodule "python-telegram-bot"]
+	path = python-telegram-bot
+	url = git@github.com:matr1xc0in/python-telegram-bot.git
+        branch = botfun-v10.1.0
