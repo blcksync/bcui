@@ -37,13 +37,11 @@ RUN groupadd -g $ETH_GID $ETH_USER && \
     curl --silent --location https://rpm.nodesource.com/setup_9.x | bash -
 
 # Pre-install all required pkgs
-RUN yum clean all && yum history sync && rpm --rebuilddb && \
-    yum update -y && \
+RUN yum clean all && rpm --rebuilddb && \
+    yum update -y && yum history sync && \
     yum install -y \
       nodejs \
       && yum clean all && rm -rf /var/cache/yum ; \
-      rm ./package-lock.json ; rm -r ./node_modules ; \
-      npm cache clear --force ; \
       npm install -g pm2
 
 WORKDIR $HOME
@@ -56,7 +54,7 @@ RUN cd /tmp && \
     /bin/bash Miniconda3-${MINICONDA_VER}-Linux-x86_64.sh -b -f -p $CONDA_DIR && \
     rm Miniconda3-${MINICONDA_VER}-Linux-x86_64.sh && \
     #Install/deploy python web framework and related python mopdules \
-    $CONDA_DIR/bin/conda install tornado && \
+    $CONDA_DIR/bin/conda install tornado=5.0.2 && \
     $CONDA_DIR/bin/conda config --system --set auto_update_conda false && \
     $CONDA_DIR/bin/conda config --system --prepend channels conda-forge && \
     $CONDA_DIR/bin/conda config --system --set show_channel_urls true && \
@@ -67,7 +65,7 @@ RUN cd /tmp && \
 
 # Installing telegram bot
 # RUN cd /home/$ETH_USER; git clone --depth 0 https://github.com/python-telegram-bot/python-telegram-bot --recursive && \
-COPY ./python-telegram-bot /home/$ETH_USER/
+ADD ./python-telegram-bot.tar.gz /home/$ETH_USER/
 
 RUN cd /home/$ETH_USER/python-telegram-bot ; python setup.py install ; \
     chown -R $ETH_USER:$ETH_GID $CONDA_DIR ; \

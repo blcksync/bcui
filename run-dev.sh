@@ -9,7 +9,7 @@ export ETH_USER=${ETH_USER:-"telegram"}
 export ETH_UID=${ETH_UID:-2999}
 export ETH_GID=${ETH_GID:-3999}
 
-IMG_NAME=telegrambot:latest
+IMG_NAME=telegrambot-dev:latest
 RUNTIME_CONTAINER_NAME=telegrambot:latest
 # devnetbc_bot
 TELEGRAM_TOKEN_API=${TELEGRAM_TOKEN_API:-"not_defined"}
@@ -24,5 +24,6 @@ docker run -it \
   --env ETH_UID="$ETH_UID" \
   --env ETH_GID="$ETH_GID" \
   --mount type=bind,source="$SRC_DOCKER_DEPLOY_DIR",target=/home/$ETH_USER/prod,readonly \
+  --publish 127.0.0.1:9090:9090 \
   $IMG_NAME
   bash -l

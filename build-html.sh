@@ -16,10 +16,12 @@ git pull
 git submodule update --init --recursive
 popd
 
+tar --exclude .git -czf python-telegram-bot.tar.gz python-telegram-bot
+
 docker build \
-  -t telegrambot:latest \
+  -t html-dev:latest \
   --build-arg ETH_USER=$ETH_USER \
   --build-arg ETH_UID=$ETH_UID \
   --build-arg ETH_GID=$ETH_GID \
-  --file Dockerfile \
+  --file Dockerfile.html \
   .

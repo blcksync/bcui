@@ -28,6 +28,7 @@ COPY update-permission /usr/local/bin/update-permission
 # Setup nodejs
 RUN groupadd -g $ETH_GID $ETH_USER && \
     useradd -u $ETH_UID -g $ETH_GID -d $HOME -ms /bin/bash $ETH_USER && \
+    usermod -a -G nginx $ETH_USER && \
     chmod g+w /etc/passwd /etc/group ; \
     mkdir -p $CONDA_DIR ; \
     chown -R $ETH_USER:$ETH_GID $CONDA_DIR ; \    
@@ -67,7 +68,7 @@ RUN cd /tmp && \
 
 # Installing telegram bot
 # RUN cd /home/$ETH_USER; git clone --depth 0 https://github.com/python-telegram-bot/python-telegram-bot --recursive && \
-COPY ./python-telegram-bot /home/$ETH_USER/
+ADD ./python-telegram-bot.tar.gz /home/$ETH_USER/
 
 RUN cd /home/$ETH_USER/python-telegram-bot ; python setup.py install ; \
     chown -R $ETH_USER:$ETH_GID $CONDA_DIR ; \
@@ -75,4 +76,10 @@ RUN cd /home/$ETH_USER/python-telegram-bot ; python setup.py install ; \
     update-permission $HOME && \
     update-permission $CONDA_DIR
 
+# Update nginx port and server, conf, etc.
+RUN cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak && \
+    cat /etc/nginx/nginx.conf.bak | sed 's/listen.*80;/listen 8080;/g' | sed 's/server_name.*localhost;/server_name _;/g' > /etc/nginx/nginx.conf
+
 USER $ETH_UID
+
+EXPOSE 8080
