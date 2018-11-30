@@ -1,6 +1,4 @@
-FROM securenginx:latest
-
-LABEL maintainer="matr1xc0in"
+FROM securenginx:latest as builder
 
 USER root
 
@@ -13,7 +11,7 @@ ENV SHELL=/bin/bash \
     ETH_USER=$ETH_USER \
     ETH_UID=$ETH_UID \
     ETH_GID=$ETH_GID \
-    CONDA_DIR=/opt/conda \
+    CONDA_DIR=/home/$ETH_USER/conda/ \
     SHELL=/bin/bash \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
@@ -49,14 +47,14 @@ RUN yum clean all && yum history sync && rpm --rebuilddb && \
 WORKDIR $HOME
 
 # Install conda
-ENV MINICONDA_VER 4.5.1
+ENV MINICONDA_VER 4.5.11
 RUN cd /tmp && \
     curl -s --output Miniconda3-${MINICONDA_VER}-Linux-x86_64.sh https://repo.continuum.io/miniconda/Miniconda3-${MINICONDA_VER}-Linux-x86_64.sh && \
-    echo "0c28787e3126238df24c5d4858bd0744 *Miniconda3-${MINICONDA_VER}-Linux-x86_64.sh" | md5sum -c - && \
+    echo "e1045ee415162f944b6aebfe560b8fee *Miniconda3-${MINICONDA_VER}-Linux-x86_64.sh" | md5sum -c - && \
     /bin/bash Miniconda3-${MINICONDA_VER}-Linux-x86_64.sh -b -f -p $CONDA_DIR && \
     rm Miniconda3-${MINICONDA_VER}-Linux-x86_64.sh && \
     #Install/deploy python web framework and related python mopdules \
-    $CONDA_DIR/bin/conda install tornado && \
+    $CONDA_DIR/bin/conda install tornado && $CONDA_DIR/bin/conda install -c conda-forge python-telegram-bot && \
     $CONDA_DIR/bin/conda config --system --set auto_update_conda false && \
     $CONDA_DIR/bin/conda config --system --prepend channels conda-forge && \
     $CONDA_DIR/bin/conda config --system --set show_channel_urls true && \
@@ -67,12 +65,57 @@ RUN cd /tmp && \
 
 # Installing telegram bot
 # RUN cd /home/$ETH_USER; git clone --depth 0 https://github.com/python-telegram-bot/python-telegram-bot --recursive && \
-COPY ./python-telegram-bot /home/$ETH_USER/
+# COPY ./python-telegram-bot /home/$ETH_USER/python-telegram-bot
 
-RUN cd /home/$ETH_USER/python-telegram-bot ; python setup.py install ; \
+RUN chown -R $ETH_USER:$ETH_GID $CONDA_DIR ; \
+    chown -R $ETH_USER:$ETH_GID $HOME ; \
+    update-permission $HOME && \
+    update-permission $CONDA_DIR
+
+USER $ETH_UID
+
+# Done building everything, let's copy all the boneries we need over
+
+FROM securenginx:latest
+
+LABEL maintainer="matr1xc0in"
+
+
+ARG ETH_USER
+ARG ETH_UID
+ARG ETH_GID
+
+# Configurating all necessary stuff
+ENV SHELL=/bin/bash \
+    ETH_USER=$ETH_USER \
+    ETH_UID=$ETH_UID \
+    ETH_GID=$ETH_GID \
+    CONDA_DIR=/home/$ETH_USER/conda \
+    SHELL=/bin/bash \
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+
+ENV PATH=$CONDA_DIR/bin:$PATH \
+    HOME=/home/$ETH_USER
+
+
+USER $ETH_UID
+COPY update-permission /usr/local/bin/update-permission
+COPY --from=builder /home/$ETH_USER/conda /home/$ETH_USER/conda
+
+USER root
+WORKDIR $HOME
+# Setup conda for all python stuff
+# Setup nodejs
+RUN groupadd -g $ETH_GID $ETH_USER && \
+    useradd -u $ETH_UID -g $ETH_GID -d $HOME -ms /bin/bash $ETH_USER && \
+    chmod g+w /etc/passwd /etc/group; \
     chown -R $ETH_USER:$ETH_GID $CONDA_DIR ; \
     chown -R $ETH_USER:$ETH_GID $HOME ; \
     update-permission $HOME && \
     update-permission $CONDA_DIR
 
 USER $ETH_UID
+WORKDIR $HOME
+
