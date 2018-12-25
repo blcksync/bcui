@@ -1,4 +1,4 @@
-FROM securenginx:latest as builder
+FROM blcksync/securenginx:latest as builder
 
 USER root
 

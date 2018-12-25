@@ -19,7 +19,7 @@ popd
 tar --exclude .git -czf python-telegram-bot.tar.gz python-telegram-bot
 
 docker build \
-  -t telegrambot-dev:latest \
+  -t blcksync/telegrambot-dev:latest \
   --build-arg ETH_USER=$ETH_USER \
   --build-arg ETH_UID=$ETH_UID \
   --build-arg ETH_GID=$ETH_GID \

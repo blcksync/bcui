@@ -17,7 +17,7 @@ export ETH_GID=${ETH_GID:-3999}
 # popd
 
 docker build \
-  -t telegrambot:latest \
+  -t blcksync/telegrambot:latest \
   --build-arg ETH_USER=$ETH_USER \
   --build-arg ETH_UID=$ETH_UID \
   --build-arg ETH_GID=$ETH_GID \
